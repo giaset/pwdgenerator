@@ -1,5 +1,5 @@
 //
-//  ViewController.h
+//  PWDMainViewController.h
 //  pwdgenerator
 //
 //  Created by Gianni Settino on 2014-09-03.
@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UIViewController
+@interface PWDMainViewController : UITableViewController
 
 
 @end
