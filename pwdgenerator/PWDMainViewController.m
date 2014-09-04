@@ -72,6 +72,11 @@ int length = 10;
 
 - (void)lengthSliderChanged:(id)sender {
     UISlider *slider = (UISlider*)sender;
+    
+    // Round the slider's value so we have "snapping" to integer steps
+    float newValue = roundf(slider.value);
+    slider.value = newValue;
+    
     length = slider.value;
     [self.tableView headerViewForSection:0].textLabel.text = [NSString stringWithFormat:@"LENGTH = %d", length];
 }
