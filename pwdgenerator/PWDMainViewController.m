@@ -20,18 +20,16 @@
 
 @implementation PWDMainViewController
 
-int length = 7;
+int length = 10;
             
 - (void)viewDidLoad {
     [super viewDidLoad];
     
     self.title = @"PWDGenerator";
     
+    self.navigationController.navigationBar.translucent = NO;
+    
     self.tableView.tableHeaderView = [self headerView];
-}
-
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
 }
 
 - (UIView*)headerView {
@@ -42,7 +40,7 @@ int length = 7;
     self.passwordLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 50, 0, 0)];
     self.passwordLabel.textColor = [UIColor whiteColor];
     self.passwordLabel.font = [UIFont systemFontOfSize:34];
-    [self generatePassword];
+    [self generatePassword]; // generate an initial password when the app is launched
     [headerView addSubview:self.passwordLabel];
     
     // Refresh Button
@@ -75,7 +73,7 @@ int length = 7;
 - (void)lengthSliderChanged:(id)sender {
     UISlider *slider = (UISlider*)sender;
     length = slider.value;
-    self.title = [NSString stringWithFormat:@"Length = %d", length];
+    [self.tableView headerViewForSection:0].textLabel.text = [NSString stringWithFormat:@"LENGTH = %d", length];
 }
 
 - (void)generatePassword {
@@ -135,7 +133,7 @@ int length = 7;
 {
     switch (section) {
         case 0:
-            return @"Length";
+            return [NSString stringWithFormat:@"LENGTH = %d", length];
             break;
             
         case 1:
@@ -150,43 +148,44 @@ int length = 7;
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *CellIdentifier = @"Cell";
+    NSString *CellIdentifier = (indexPath.section == 0) ? @"SliderCell" : @"SwitchCell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     
     if (cell == nil) {
+        // If there is no cell to re-use, create a new one
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        
+        if (indexPath.section == 0) {
+            // In the first section of our TableView, we have one cell that contains a slider to manipulate the password's length, so create this slider and add it to the cell here.
+            UISlider *slider = [[UISlider alloc] init];
+            slider.frame = CGRectMake(10, 5, cell.contentView.frame.size.width-20, slider.frame.size.height);
+            slider.minimumValue = 5;
+            slider.maximumValue = 10;
+            slider.value = length;
+            [slider addTarget:self action:@selector(lengthSliderChanged:) forControlEvents:UIControlEventValueChanged];
+            [cell.contentView addSubview: slider];
+        } else {
+            // In the second section of our TableView, we have three cells that each have a UISwitch as their accessory view.
+            UISwitch *toggle = [[UISwitch alloc] initWithFrame:CGRectZero];
+            cell.accessoryView = toggle;
+        }
     }
     
-    // Customize the cells
-    cell.selectionStyle = UITableViewCellSelectionStyleNone;
-    
-    if (indexPath.section == 0) {
-        UISlider *slider = [[UISlider alloc] init];
-        slider.minimumValue = 5;
-        slider.maximumValue = 10;
-        slider.value = length;
-        [slider addTarget:self action:@selector(lengthSliderChanged:) forControlEvents:UIControlEventValueChanged];
-        [cell.contentView addSubview: slider];
-        slider.bounds = CGRectMake(0, 0, cell.contentView.bounds.size.width - 10, slider.bounds.size.height);
-        slider.center = CGPointMake(CGRectGetMidX(cell.contentView.bounds), CGRectGetMidY(cell.contentView.bounds));
-        slider.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
-    } else {
-        // Add a switch to this cell (NB: THIS WILL FUCK-UP BECAUSE OF CELL-REUSE, BUT I'M RUNNING LOW ON TIME SO IT'LL DO FOR NOW...)
-        UISwitch *toggle = [[UISwitch alloc] initWithFrame:CGRectZero];
-        cell.accessoryView = toggle;
-        
+    // Customize the three cells containing UISwitches here, becasue they may or may not have been re-used.
+    if (indexPath.section == 1) {
         switch (indexPath.row) {
             case 0:
                 cell.textLabel.text = @"Caps";
-                self.capsSwitch = toggle;
+                self.capsSwitch = (UISwitch*)cell.accessoryView;
                 break;
             case 1:
                 cell.textLabel.text = @"Numbers";
-                self.numbersSwitch = toggle;
+                self.numbersSwitch = (UISwitch*)cell.accessoryView;
                 break;
             case 2:
                 cell.textLabel.text = @"Symbols";
-                self.symbolsSwitch = toggle;
+                self.symbolsSwitch = (UISwitch*)cell.accessoryView;
                 break;
             default:
                 break;
